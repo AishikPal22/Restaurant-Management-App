@@ -13,10 +13,10 @@ namespace RestaurantManagementApplication.Controllers
     {
         ApplicationDbContext _appdb = new ApplicationDbContext();
 
-        [HttpGet("GetOrders")]
+        [HttpGet("GetAllOrders")]
         [Authorize]
         //https://localhost:7252/api/orders
-        public IActionResult GetOrders(int bookingId)
+        public IActionResult GetAllOrders(int bookingId)
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
@@ -32,10 +32,10 @@ namespace RestaurantManagementApplication.Controllers
             var order = _appdb.Orders.Where(b => b.BookingId == booking.Id).Select(
                 o => new OrderDTO
                 {
-                    UserId = user.Id,
+                    //UserId = user.Id,
                     UserName = user.UserName,
                     BookingId = o.BookingId,
-                    BookingTime = o.Booking.BookingTime,
+                    //BookingTime = o.Booking.BookingTime,
                     OrderId = o.Id,
                     ItemName = o.ItemName,
                     ItemDescription = o.Item.Description,
@@ -47,43 +47,6 @@ namespace RestaurantManagementApplication.Controllers
                 return BadRequest();
             else
                 return Ok(order);
-        }
-
-        [HttpGet("GetBill")]
-        [Authorize]
-        //https://localhost:7252/api/orders
-        public IActionResult GetBill(int bookingId)
-        {
-            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
-
-            if (user == null)
-                return NotFound();
-
-            var booking = _appdb.Bookings.FirstOrDefault(x => x.Id == bookingId && x.UserId == user.Id);
-
-            if (booking == null)
-                return NotFound();
-
-            var bill = _appdb.Orders.Where(b => b.BookingId == booking.Id).Select(
-                o => new BillDTO
-                {
-                    UserId = user.Id,
-                    UserName = user.UserName,
-                    BookingId = o.BookingId,
-                    //BookingTime = o.Booking.BookingTime,
-                    OrderId = o.Id,
-                    ItemName = o.ItemName,
-                    Amount = (o.Item.Price * o.Quantity)
-                    //ItemDescription = o.Item.Description,
-                    //ItemPrice = o.Item.Price,
-                    //ItemQuantity = o.Quantity
-                });
-
-            if (bill == null)
-                return BadRequest();
-            else
-                return Ok(bill);
         }
 
         [HttpPost]
@@ -106,6 +69,7 @@ namespace RestaurantManagementApplication.Controllers
                 return NoContent();
 
             order.ItemId = orderItem.Id;
+            order.Amount = order.Quantity * orderItem.Price;
             _appdb.Orders.Add(order);
             _appdb.SaveChanges();
             return StatusCode(StatusCodes.Status201Created);

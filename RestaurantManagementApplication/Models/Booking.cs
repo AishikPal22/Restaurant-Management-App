@@ -18,21 +18,5 @@ namespace RestaurantManagementApplication.Models
         public string BookingTime { get; set; }
 
         public ICollection<Order> Orders { get; set; }
-
-        //[Required(ErrorMessage = "Please select some items")]
-        //public int ItemId { get; set; }
-        //[JsonIgnore]
-        //public Item Item { get; set; }
-
-        //public int Quantity { get; set; } = 1;
-
-        //public string BookingDate { get; set; } = DateTime.Now.ToString("D");
-
-
-        //public decimal Amount { get; set; }
-        //[ForeignKey("Bill")]
-        //public int BillId { get; set; }
-        //[JsonIgnore]
-        //public Bill Bill { get; set; }
     }
 }

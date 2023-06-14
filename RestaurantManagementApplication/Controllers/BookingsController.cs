@@ -13,6 +13,19 @@ namespace RestaurantManagementApplication.Controllers
     {
         ApplicationDbContext _appdb = new ApplicationDbContext();
 
+        //[HttpGet]
+        //[Authorize]
+        //public IActionResult GetBill(int bookingid)
+        //{
+        //    var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        //    var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
+            
+        //    if (user == null)
+        //        return NotFound();
+
+
+        //}
+
         [HttpPost]
         [Authorize]
         //https://localhost:7252/api/bookings

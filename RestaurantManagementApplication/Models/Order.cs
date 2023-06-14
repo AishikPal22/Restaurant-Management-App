@@ -21,5 +21,7 @@ namespace RestaurantManagementApplication.Models
         public Item Item { get; set; }
 
         public int Quantity { get; set; } = 1;
+
+        public decimal Amount { get; set; }
     }
 }

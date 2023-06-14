@@ -40,7 +40,7 @@ namespace RestaurantManagementApplication.Controllers
             if (user == null)
                 return NotFound();
             
-            if (!user.IsAdmin)
+            if (user.ProfileId != 1)
                 return BadRequest();
             
             _appdb.Menu.Add(item);
@@ -63,7 +63,7 @@ namespace RestaurantManagementApplication.Controllers
             if (user == null)
                 return NotFound();
             
-            if (!user.IsAdmin)
+            if (user.ProfileId != 1)
                 return BadRequest();
 
             update.Name = item.Name;
@@ -90,7 +90,7 @@ namespace RestaurantManagementApplication.Controllers
             if (user == null)
                 return NotFound();
 
-            if (!user.IsAdmin)
+            if (user.ProfileId != 1)
                 return BadRequest();
 
             _appdb.Menu.Remove(delete);

@@ -4,20 +4,20 @@ using System.Text.Json.Serialization;
 
 namespace RestaurantManagementApplication.Models
 {
-    public class Cart
+    public class Bill
     {
-        [Required]
+        //[Required]
         public int Id { get; set; }
-        [Required]
-        [ForeignKey("Item")]
-        public int ItemId { get; set; }
-        [JsonIgnore]
-        public Item Item { get; set; }
-        [Required]
-        [ForeignKey("User")]
+        
         public int UserId { get; set; }
+        [JsonIgnore]
         public User User { get; set; }
-        [Required]
-        public int Quantity { get; set; }
+
+        public int BookingId { get; set; }
+
+        //public List<Order> AllOrders { get; set; }
+        public Dictionary<int, string> AllOrders { get; set; } = new Dictionary<int, string>();
+
+        public decimal Amount { get; set; } = 0;
     }
 }

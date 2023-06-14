@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace RestaurantManagementApplication.Models
 {
@@ -18,8 +19,12 @@ namespace RestaurantManagementApplication.Models
         [RegularExpression("^[0-9]*$")]
         public string PhoneNo { get; set; }
 
-        public bool IsAdmin { get; set; } = false;
+        public int ProfileId { get; set; } = 2;
+        [JsonIgnore]
+        public Profile Profile { get; set; }
         
         public ICollection<Booking> Bookings { get; set; }
+
+        public ICollection<Bill> Bills { get; set; }
     }
 }

@@ -5,11 +5,13 @@ namespace RestaurantManagementApplication.Models
 {
     public class ApplicationDbContext : DbContext
     {
+        public DbSet<Profile> Profiles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Bill> Bills { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Item> Menu { get; set; }
-        public DbSet<Cart> Carts { get; set; }
+        //public DbSet<Bill> Carts { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -18,15 +20,20 @@ namespace RestaurantManagementApplication.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<User>()
+                .HasOne(u=>u.Profile)
+                .WithMany(p=>p.Users)
+                .HasForeignKey(u=>u.ProfileId);
+            
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.User)
                 .WithMany(u => u.Bookings)
                 .HasForeignKey(b => b.UserId);
 
-            //modelBuilder.Entity<Bill>()
-            //    .HasOne(b => b.Booking)
-            //    .WithOne(b => b.Bill)
-            //    .HasForeignKey<Booking>(b => b.BillId);
+            modelBuilder.Entity<Bill>()
+                .HasOne(b => b.User)
+                .WithMany(u => u.Bills)
+                .HasForeignKey(b => b.UserId);
 
             modelBuilder.Entity<Order>()
                 .HasOne(b => b.Booking)
@@ -44,13 +51,21 @@ namespace RestaurantManagementApplication.Models
                     v => DateTime.ParseExact(v, "g", CultureInfo.InvariantCulture),
                     v => v.ToString("g", CultureInfo.InvariantCulture));
 
-            //modelBuilder.Entity<Booking>()
-            //    .Property(b => b.Amount)
-            //    .HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Bill>()
+                .Property(b => b.Amount)
+                .HasColumnType("decimal(18,2)");
 
-            //modelBuilder.Entity<Booking>()
-            //    .Property(b => b.Amount)
-            //    .HasPrecision(18, 2);
+            modelBuilder.Entity<Bill>()
+                .Property(b => b.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(b => b.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Order>()
+                .Property(b => b.Amount)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<Item>()
                 .Property(b => b.Price)
