@@ -9,11 +9,11 @@ namespace RestaurantManagementApplication.Models
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Item> Menu { get; set; }
-        //public DbSet<Bill> Bills { get; set; }
+        public DbSet<Cart> Carts { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=MyNotebook;Database=RestaurantManagementDb;Trusted_Connection=True;Encrypt=False;");
+            optionsBuilder.UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=RestaurantManagementDb;Trusted_Connection=True;Encrypt=False;");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
