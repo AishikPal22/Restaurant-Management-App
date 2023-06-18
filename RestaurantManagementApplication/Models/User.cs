@@ -19,7 +19,7 @@ namespace RestaurantManagementApplication.Models
         [RegularExpression("^[0-9]*$")]
         public string PhoneNo { get; set; }
 
-        public int ProfileId { get; set; } = 2;
+        public int ProfileId { get; set; } = 3;
         [JsonIgnore]
         public Profile Profile { get; set; }
         

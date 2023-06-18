@@ -2,8 +2,8 @@
 {
     public class Profile
     {
-        public int Id { get; set; }
-        public string Role { get; set; }
+        public int ProfileId { get; set; }
+        public string ProfileName { get; set; }
         public ICollection<User> Users { get; set; }
     }
 }

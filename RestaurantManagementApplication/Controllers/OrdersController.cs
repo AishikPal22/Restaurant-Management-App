@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using RestaurantManagementApplication.DTO;
 using RestaurantManagementApplication.Models;
 using System.Security.Claims;
@@ -13,77 +14,144 @@ namespace RestaurantManagementApplication.Controllers
     {
         ApplicationDbContext _appdb = new ApplicationDbContext();
 
-        [HttpGet("GetAllOrders")]
-        [Authorize]
-        //https://localhost:7252/api/orders
-        public IActionResult GetAllOrders(int bookingId)
+        //View all bookings made. Only visible to admin.
+        [HttpGet("AllOrders")]
+        [Authorize(Policy = "admin")]
+        public IEnumerable<Order> GetAllOrders()
+        {
+            return (IEnumerable<Order>)_appdb.Orders.GroupBy(u => u.BookingId); //testing groupby method
+        }
+        
+        //Enter a BookingId to view all orders for that booking.
+        [HttpGet("MyOrders/{id}")]
+        [Authorize(Roles = "admin, customer")]
+        public IActionResult GetOrders(string id)
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
-
             if (user == null)
-                return NotFound();
-
-            var booking = _appdb.Bookings.FirstOrDefault(x => x.Id == bookingId && x.UserId == user.Id);
-
-            if(booking == null) 
-                return NotFound();
-
-            var order = _appdb.Orders.Where(b => b.BookingId == booking.Id).Select(
-                o => new OrderDTO
-                {
-                    //UserId = user.Id,
-                    UserName = user.UserName,
-                    BookingId = o.BookingId,
-                    //BookingTime = o.Booking.BookingTime,
-                    OrderId = o.Id,
-                    ItemName = o.ItemName,
-                    ItemDescription = o.Item.Description,
-                    ItemPrice = o.Item.Price,
-                    ItemQuantity = o.Quantity
-                });
-            
-            if (order == null)
                 return BadRequest();
+
+            int bookingid = int.Parse(id);
+            var booking = _appdb.Bookings.FirstOrDefault(x => x.Id == bookingid && (x.UserId == user.Id || user.ProfileId == 1));
+            if (booking == null)
+                return NotFound($"Booking {bookingid} not found.");
+
+            var orders = _appdb.Orders.OrderByDescending(o => o.Quantity).Where(b => b.BookingId == booking.Id).Select(
+                o => new OrderDTO(o.Id, o.ItemName, o.Item.Price, o.Quantity, o.Price));
+
+            if (orders.IsNullOrEmpty())
+                return NotFound("No orders made.");
             else
-                return Ok(order);
+                return Ok(orders);
         }
 
+        //Order any item from menu.
         [HttpPost]
-        [Authorize]
-        //https://localhost:7252/api/orders
+        [Authorize(Policy = "customer")]
         public IActionResult Post([FromBody] Order order)
         {
             if (order == null)
                 return NoContent();
 
+            if (!string.IsNullOrEmpty(order.BookingId.ToString()) || !string.IsNullOrEmpty(order.Price.ToString()))
+                return BadRequest("Posting objects with values for certain properties is not allowed.");
+
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
-
             if (user == null)
-                return NotFound();
+                return BadRequest();
 
-            var orderItem = _appdb.Menu.FirstOrDefault(x => x.Name == order.ItemName);
+            var item = _appdb.Menu.FirstOrDefault(x => x.Name == order.ItemName && x.IsAvailable == true);
+            if (item == null)
+                return NotFound($"{order.ItemName} is not available.");
 
-            if (orderItem == null)
-                return NoContent();
+            var booking = _appdb.Bookings.OrderBy(i => i.BookingDate).LastOrDefault(x => x.UserId == user.Id);
+            if (booking == null)
+                return NotFound("Make a booking and then proceed to order.");
 
-            order.ItemId = orderItem.Id;
-            order.Amount = order.Quantity * orderItem.Price;
+            order.BookingId = booking.Id;
+            order.ItemId = item.Id;
+            order.Price = order.Quantity * item.Price;
             _appdb.Orders.Add(order);
             _appdb.SaveChanges();
             return StatusCode(StatusCodes.Status201Created);
         }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "customer")]
+        //Enter the OrderId of the order you want to edit. 
+        public IActionResult Put(int orderid, [FromBody] Order order)
+        {
+            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
+            if (user == null)
+                return BadRequest();
+
+            var booking = _appdb.Bookings.OrderBy(i => i.BookingDate).LastOrDefault(x => x.UserId == user.Id);
+            if (booking == null)
+                return NotFound("You haven't made any booking.");
+
+            if (order == null)
+                return NoContent();
+
+            if (!string.IsNullOrEmpty(order.BookingId.ToString()) || !string.IsNullOrEmpty(order.Price.ToString()))
+                return BadRequest("Posting objects with values for certain properties is not allowed.");
+
+            var orderToUpdate = _appdb.Orders.FirstOrDefault(o => o.Id == orderid);
+            if (orderToUpdate == null)
+                return NotFound($"No order exists with OrderId {orderid}");
+
+            if (orderToUpdate.BookingId == booking.Id)
+                return BadRequest("Order does not exist in your current booking.");
+
+            var item = _appdb.Menu.FirstOrDefault(x => x.Name == order.ItemName && x.IsAvailable == true);
+            if (item == null)
+                return NotFound($"{order.ItemName} is not available.");
+
+            orderToUpdate.ItemName = order.ItemName;
+            orderToUpdate.ItemId = item.Id;
+            orderToUpdate.Quantity = order.Quantity;
+            orderToUpdate.Price = order.Quantity * item.Price;
+            _appdb.SaveChanges();
+            return Ok($"Order {orderid} updated successfully!");
+        }
+
+        //Enter the OrderId of the order you want to delete.
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "customer")]
+        public IActionResult Delete(int orderid)
+        {
+            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
+            if (user == null)
+                return BadRequest();
+
+            var booking = _appdb.Bookings.OrderBy(i => i.BookingDate).LastOrDefault(x => x.UserId == user.Id);
+            if (booking == null)
+                return NotFound("You haven't made any booking.");
+
+            var orderToDelete = _appdb.Orders.FirstOrDefault(o => o.Id == orderid);
+            if (orderToDelete == null)
+                return NotFound($"No order exists with OrderId {orderid}");
+
+            if (orderToDelete.BookingId == booking.Id)
+                return BadRequest("Order does not exist in your current booking.");
+
+            _appdb.Orders.Remove(orderToDelete);
+            _appdb.SaveChanges();
+            return Ok($"Order {orderid} deleted successfully!");
+        }
     }
 }
 
-            //var booking = _appdb.Bookings.Where(c => c.UserId == user.Id);
-            ////var order = _appdb.Orders.Where(o => o.BookingId == booking.Select(b=>b.Id));
-            //var orderList = new List<Order>();
-            //foreach (var order in _appdb.Orders) {
-            //    foreach (var book in booking) {
-            //        if (order.BookingId == book.Id) {
-            //            orderList.Add(order);
-            //        }
-            //    }
-            //}
+//var booking = _appdb.Bookings.Where(c => c.UserId == user.Id);
+////var order = _appdb.Orders.Where(o => o.BookingId == booking.Select(b=>b.Id));
+//var orderList = new List<Order>();
+//foreach (var order in _appdb.Orders) {
+//    foreach (var book in booking) {
+//        if (order.BookingId == book.Id) {
+//            orderList.Add(order);
+//        }
+//    }
+//}

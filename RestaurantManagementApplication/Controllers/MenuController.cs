@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using RestaurantManagementApplication.DTO;
 using RestaurantManagementApplication.Models;
 using System.Security.Claims;
 
@@ -12,90 +14,70 @@ namespace RestaurantManagementApplication.Controllers
     {
         ApplicationDbContext _appdb = new ApplicationDbContext();
 
+        //View all available items from menu.
         [HttpGet]
         [Authorize]
-        //https://localhost:7252/api/menu
         public IActionResult Get()
         {
-            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
-            
-            if (user == null)
-                return NotFound();
-            
-            return Ok(_appdb.Menu);
+            var menu = _appdb.Menu.OrderBy(m => m.Name).Where(m => m.IsAvailable == true).Select(
+                m => new MenuDTO(m.Name, m.Description, m.Price));
+
+            if (menu.IsNullOrEmpty())
+                return NotFound("No item exists.");
+            else
+                return Ok(menu);
         }
 
+        //Add a new item to the menu.
         [HttpPost]
-        [Authorize]
-        //https://localhost:7252/api/menu
+        [Authorize(Policy = "admin")]
         public IActionResult Post([FromBody] Item item)
         {
             if (item == null)
                 return NoContent();
-            
-            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
-            
-            if (user == null)
-                return NotFound();
-            
-            if (user.ProfileId != 1)
-                return BadRequest();
-            
+
+            var itemExists = _appdb.Menu.FirstOrDefault(m => m.Name == item.Name);
+            if (itemExists != null)
+                return BadRequest("Item with same name already exists.");
+
+            item.IsAvailable = true;
             _appdb.Menu.Add(item);
             _appdb.SaveChanges();
             return StatusCode(StatusCodes.Status201Created);
         }
 
+        //Enter ItemId to update that item from menu.
         [HttpPut("{id}")]
-        [Authorize]
-        //https://localhost:7252/api/menu/0
+        [Authorize(Policy = "admin")]
         public IActionResult Put(int id, [FromBody] Item item)
         {
             var update = _appdb.Menu.FirstOrDefault(p => p.Id == id);
             if (update == null)
-                return NoContent();
-            
-            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
-            
-            if (user == null)
-                return NotFound();
-            
-            if (user.ProfileId != 1)
-                return BadRequest();
+                return NotFound($"No item found with id {id}");
+
+            if (item.Name == update.Name)
+                return BadRequest("Item with same name already exists.");
 
             update.Name = item.Name;
             update.Description = item.Description;
             update.Price = item.Price;
             update.IsAvailable = item.IsAvailable;
             _appdb.SaveChanges();
-            return Ok("Record updated successfully!");
+            return Ok("Item info updated successfully!");
         }
 
+        //Enter ItemId to delete that item from menu.
         [HttpDelete("{id}")]
-        [Authorize]
-        //https://localhost:7252/api/menu/0
+        [Authorize(Policy = "admin")]
         public IActionResult Delete(int id)
         {
-            var delete = _appdb.Menu.FirstOrDefault(p => p.Id == id);
-            
-            if (delete == null) 
-                return NoContent();
-            
-            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
-            
-            if (user == null)
-                return NotFound();
+            var item = _appdb.Menu.FirstOrDefault(p => p.Id == id);
+            if (item == null)
+                return NotFound($"No item found with id {id}");
 
-            if (user.ProfileId != 1)
-                return BadRequest();
-
-            _appdb.Menu.Remove(delete);
+            _appdb.Menu.Remove(item);
             _appdb.SaveChanges();
-            return Ok("Record deleted successfully!");
+            return Ok($"Item: {item.Name} deleted successfully!");
         }
     }
 }

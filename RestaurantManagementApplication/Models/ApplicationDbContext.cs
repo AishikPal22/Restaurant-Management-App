@@ -11,20 +11,25 @@ namespace RestaurantManagementApplication.Models
         public DbSet<Bill> Bills { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Item> Menu { get; set; }
-        //public DbSet<Bill> Carts { get; set; }
+        public DbSet<Pickup> Pickups { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=RestaurantManagementDb;Trusted_Connection=True;Encrypt=False;");
+            optionsBuilder.UseSqlServer(@"Server=MyNotebook;Database=RestaurantManagementDb;Trusted_Connection=True;Encrypt=False;");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
-                .HasOne(u=>u.Profile)
-                .WithMany(p=>p.Users)
-                .HasForeignKey(u=>u.ProfileId);
-            
+                .HasOne(u => u.Profile)
+                .WithMany(p => p.Users)
+                .HasForeignKey(u => u.ProfileId);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Pickup)
+                .WithMany(p => p.Bookings)
+                .HasForeignKey(b => b.PickupId);
+
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.User)
                 .WithMany(u => u.Bookings)
@@ -45,12 +50,6 @@ namespace RestaurantManagementApplication.Models
                 .WithMany(u => u.Orders)
                 .HasForeignKey(i => i.ItemId);
 
-            modelBuilder.Entity<Booking>()
-                .Property(e => e.BookingTime)
-                .HasConversion(
-                    v => DateTime.ParseExact(v, "g", CultureInfo.InvariantCulture),
-                    v => v.ToString("g", CultureInfo.InvariantCulture));
-
             modelBuilder.Entity<Bill>()
                 .Property(b => b.Amount)
                 .HasColumnType("decimal(18,2)");
@@ -60,11 +59,11 @@ namespace RestaurantManagementApplication.Models
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<Order>()
-                .Property(b => b.Amount)
+                .Property(b => b.Price)
                 .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<Order>()
-                .Property(b => b.Amount)
+                .Property(b => b.Price)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<Item>()

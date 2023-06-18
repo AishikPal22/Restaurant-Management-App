@@ -16,7 +16,7 @@ namespace RestaurantManagementApplication.Models
         public int BookingId { get; set; }
 
         //public List<Order> AllOrders { get; set; }
-        public Dictionary<int, string> AllOrders { get; set; } = new Dictionary<int, string>();
+        public string AllOrders { get; set; }
 
         public decimal Amount { get; set; } = 0;
     }

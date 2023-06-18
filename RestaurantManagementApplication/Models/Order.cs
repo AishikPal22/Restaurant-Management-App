@@ -9,7 +9,6 @@ namespace RestaurantManagementApplication.Models
         [Key]
         public int Id { get; set; }
 
-        //[ForeignKey("Booking")]
         public int BookingId { get; set; }
         [JsonIgnore]
         public Booking Booking { get; set; }
@@ -22,6 +21,6 @@ namespace RestaurantManagementApplication.Models
 
         public int Quantity { get; set; } = 1;
 
-        public decimal Amount { get; set; }
+        public decimal Price { get; set; }
     }
 }

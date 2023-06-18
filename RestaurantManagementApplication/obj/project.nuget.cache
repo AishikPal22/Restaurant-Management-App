@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "nxbHAXo4GMib04zWl01pur7SBSaDWm7m+oQ0gG2wqulP/wD9PHV+a2/Hm5NlKhjBYDZzHU/1h9B5qjOArEpkbw==",
+  "dgSpecHash": "eaG0Tu17tE4Zmkc67D3TbO4ufdmdWjCg9Pj6joQjghJ33Z/ZpopSI9w/imotogrFzuAaoMkvYd6mNvcoQbMwFQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\AP\\source\\repos\\AishikPal22\\Restaurant-Management-App\\RestaurantManagementApplication\\RestaurantManagementApplication.csproj",
   "expectedPackageFiles": [
@@ -46,6 +46,7 @@
     "C:\\Users\\AP\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",
     "C:\\Users\\AP\\.nuget\\packages\\microsoft.win32.systemevents\\5.0.0\\microsoft.win32.systemevents.5.0.0.nupkg.sha512",
     "C:\\Users\\AP\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
+    "C:\\Users\\AP\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
     "C:\\Users\\AP\\.nuget\\packages\\swashbuckle.aspnetcore\\6.4.0\\swashbuckle.aspnetcore.6.4.0.nupkg.sha512",
     "C:\\Users\\AP\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.4.0\\swashbuckle.aspnetcore.swagger.6.4.0.nupkg.sha512",
     "C:\\Users\\AP\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.4.0\\swashbuckle.aspnetcore.swaggergen.6.4.0.nupkg.sha512",

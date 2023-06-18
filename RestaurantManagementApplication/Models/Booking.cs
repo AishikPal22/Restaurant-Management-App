@@ -14,8 +14,11 @@ namespace RestaurantManagementApplication.Models
         [JsonIgnore]
         public User User { get; set; }
 
-        [Required(ErrorMessage = "Please enter a time for your booking (dd/MM/yyyy HH:mm).")]
-        public string BookingTime { get; set; }
+        public int PickupId { get; set; }
+        [JsonIgnore]
+        public Pickup Pickup { get; set; }
+
+        public DateTime BookingDate { get; set; }
 
         public ICollection<Order> Orders { get; set; }
     }

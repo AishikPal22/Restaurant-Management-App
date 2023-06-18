@@ -229,3 +229,4 @@ C:\Users\AP\source\repos\AishikPal22\Restaurant-Management-App\RestaurantManagem
 C:\Users\AP\source\repos\AishikPal22\Restaurant-Management-App\RestaurantManagementApplication\obj\Debug\net7.0\RestaurantManagementApplication.pdb
 C:\Users\AP\source\repos\AishikPal22\Restaurant-Management-App\RestaurantManagementApplication\obj\Debug\net7.0\RestaurantManagementApplication.genruntimeconfig.cache
 C:\Users\AP\source\repos\AishikPal22\Restaurant-Management-App\RestaurantManagementApplication\obj\Debug\net7.0\ref\RestaurantManagementApplication.dll
+C:\Users\AP\source\repos\AishikPal22\Restaurant-Management-App\RestaurantManagementApplication\bin\Debug\net7.0\Newtonsoft.Json.dll

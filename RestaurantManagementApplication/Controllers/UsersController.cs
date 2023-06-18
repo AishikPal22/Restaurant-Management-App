@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RestaurantManagementApplication.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -20,8 +22,16 @@ namespace RestaurantManagementApplication.Controllers
             _config = config;
         }
 
+        //View all registered users. Only visible to admin.
+        [HttpGet("AllUsers")]
+        [Authorize(Policy = "admin")]
+        public IEnumerable<User> GetAllUsers()
+        {
+            return _appdb.Users;
+        }
+        
+        //Register a new user. Set value of ProfileId to 1 if admin and 2 if seller. Default value is set to 3 for customers. 
         [HttpPost("[action]")]
-        //https://localhost:7252/api/users/register
         public IActionResult Register([FromBody] User user)
         {
             var userExists = _appdb.Users.FirstOrDefault(u => u.EmailId == user.EmailId);
@@ -34,8 +44,8 @@ namespace RestaurantManagementApplication.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
+        //Login using EmailId and password to retrieve a JWT token and proceed.
         [HttpPost("[action]")]
-        //https://localhost:7252/api/users/login
         public IActionResult Login([FromBody] User user)
         {
             var currentUser = _appdb.Users.FirstOrDefault(x => x.EmailId == user.EmailId && x.Password == user.Password);
@@ -45,7 +55,24 @@ namespace RestaurantManagementApplication.Controllers
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[] { new Claim(ClaimTypes.Email, user.EmailId) };
+            string profile = "";
+            foreach (var role in _appdb.Profiles)
+            {
+                if (role.ProfileId == currentUser.ProfileId)
+                {
+                    profile = role.ProfileName;
+                    break;
+                }
+            }
+
+            var profileClaim = new Claim("ProfileType", profile); // Add user type claim
+            var emailClaim = new Claim(ClaimTypes.Email, user.EmailId);
+            
+            var claims = new[] 
+            {  
+                profileClaim,
+                emailClaim 
+            };
 
             var token = new JwtSecurityToken(
                 issuer: _config["JWT:Issuer"],
@@ -56,28 +83,31 @@ namespace RestaurantManagementApplication.Controllers
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return Ok(jwt);
         }
-
-        [HttpPost("[action]")]
-        //https://localhost:7252/api/users/logout
-        public IActionResult Logout()
-        {
-            // Invalidate the token by setting its expiration time to a past date/time
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var jwtHandler = new JwtSecurityTokenHandler();
-            var jwtToken = jwtHandler.ReadToken(token) as JwtSecurityToken;
-
-            var expiredToken = new JwtSecurityToken(
-                _config["JWT:Issuer"],
-                _config["JWT:Audience"],
-                jwtToken.Claims,
-                DateTime.Now,
-                DateTime.Now.AddMinutes(-60),  // Expired token with negative expiration time
-                jwtToken.SigningCredentials
-            );
-
-            var newToken = jwtHandler.WriteToken(expiredToken);
-
-            return Ok("Logout successful");
-        }
     }
 }
+
+
+
+
+        //[HttpPost("[action]")]
+        //
+        //public IActionResult Logout()
+        //{
+        //    // Invalidate the token by setting its expiration time to a past date/time
+        //    var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        //    var jwtHandler = new JwtSecurityTokenHandler();
+        //    var jwtToken = jwtHandler.ReadToken(token) as JwtSecurityToken;
+
+        //    var expiredToken = new JwtSecurityToken(
+        //        _config["JWT:Issuer"],
+        //        _config["JWT:Audience"],
+        //        jwtToken.Claims,
+        //        DateTime.Now,
+        //        DateTime.Now.AddMinutes(-60),  // Expired token with negative expiration time
+        //        jwtToken.SigningCredentials
+        //    );
+
+        //    var newToken = jwtHandler.WriteToken(expiredToken);
+
+        //    return Ok("Logout successful");
+        //}

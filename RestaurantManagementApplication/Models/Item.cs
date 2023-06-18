@@ -8,6 +8,8 @@ namespace RestaurantManagementApplication.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Please enter item name.")]
+        [StringLength(450)]
+        //add unique decalration in migration file
         public string Name { get; set; }
 
         public string Description { get; set; }
@@ -15,7 +17,7 @@ namespace RestaurantManagementApplication.Models
         [Required(ErrorMessage = "Please enter the price.")]
         public decimal Price { get; set; }
 
-        public bool IsAvailable { get; set; } = true;
+        public bool IsAvailable { get; set; }
 
         public ICollection<Order> Orders { get; set; }
     }
