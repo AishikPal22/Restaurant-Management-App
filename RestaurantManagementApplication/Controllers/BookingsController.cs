@@ -44,16 +44,16 @@ namespace RestaurantManagementApplication.Controllers
         //Enter a BookingId to view that booking.
         [HttpGet("{id}")]
         [Authorize(Roles = "admin,customer")]
-        public IActionResult Get(int bookingid)
+        public IActionResult Get(int id)
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
             if (user == null)
                 return BadRequest();
 
-            var booking = _appdb.Bookings.FirstOrDefault(b => b.Id == bookingid && (b.UserId == user.Id || user.ProfileId == 1));           
+            var booking = _appdb.Bookings.FirstOrDefault(b => b.Id == id && (b.UserId == user.Id || user.ProfileId == 1));           
             if (booking == null)
-                return NotFound($"Booking {bookingid} not found.");
+                return NotFound($"Booking {id} not found.");
 
             var bookingdto = _appdb.Bookings.Where(b => b.Id == booking.Id).Select(
                 b => new BookingDTO(b.Id, b.User.UserName, b.Pickup.Name, b.Pickup.Location, b.BookingDate.ToString("g")));
@@ -90,7 +90,7 @@ namespace RestaurantManagementApplication.Controllers
         //Enter the BookingId of the booking you want to edit.          
         [HttpPut("{id}")]
         [Authorize(Policy = "customer")]
-        public IActionResult Put(int bookingid, [FromBody] string location) //to check if string location works or need to send object of Booking class
+        public IActionResult Put(int id, [FromBody] string location) //to check if string location works or need to send object of Booking class
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
@@ -101,33 +101,33 @@ namespace RestaurantManagementApplication.Controllers
             if(pickup == null)
                 return NotFound($"No pickup found at {location}.");
 
-            var booking = _appdb.Bookings.FirstOrDefault(b => b.Id == bookingid && b.UserId == user.Id);
+            var booking = _appdb.Bookings.FirstOrDefault(b => b.Id == id && b.UserId == user.Id);
             if (booking == null)
-                return NotFound($"Booking {bookingid} not found.");
+                return NotFound($"Booking {id} not found.");
 
             booking.Pickup.Location = pickup.Location;
             booking.BookingDate = DateTime.Now;
             _appdb.SaveChanges();
-            return Ok($"Booking {bookingid} updated successfully!");
+            return Ok($"Booking {id} updated successfully!");
         }
 
         //Enter the BookingId of the booking you want to delete.
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin,customer")]
-        public IActionResult DeleteBooking(int bookingid)
+        public IActionResult DeleteBooking(int id)
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
             if (user == null)
                 return BadRequest();
 
-            var booking = _appdb.Bookings.FirstOrDefault(b => b.Id == bookingid && (b.UserId == user.Id || user.ProfileId == 1));
+            var booking = _appdb.Bookings.FirstOrDefault(b => b.Id == id && (b.UserId == user.Id || user.ProfileId == 1));
             if (booking == null)
-                return NotFound($"Booking {bookingid} not found.");
+                return NotFound($"Booking {id} not found.");
 
             _appdb.Bookings.Remove(booking);
             _appdb.SaveChanges();
-            return Ok($"Booking {bookingid} deleted successfully!");
+            return Ok($"Booking {id} deleted successfully!");
         }
     }
 }

@@ -56,8 +56,9 @@ namespace RestaurantManagementApplication.Controllers
         //Enter the BookingId to view bill for that booking. 
         [HttpGet("{id}")]
         [Authorize(Roles = "admin,customer")]
-        public IActionResult Get(int bookingid)
+        public IActionResult Get(int id)
         {
+            int bookingid = id;
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
             if (user == null)
@@ -119,8 +120,10 @@ namespace RestaurantManagementApplication.Controllers
         //Enter the BookingId to delete bill for that booking. 
         [HttpDelete("{id}")]
         [Authorize(Policy = "admin")]
-        public IActionResult Delete(int bookingid)
+        public IActionResult Delete(int id)
         {
+            int bookingid = id;
+            
             //If booking with entered BookingId not found, delete bill for the same automatically.
             var booking = _appdb.Bookings.FirstOrDefault(b => b.Id == bookingid);
             if (booking == null)

@@ -25,17 +25,17 @@ namespace RestaurantManagementApplication.Controllers
         //Enter a BookingId to view all orders for that booking.
         [HttpGet("MyOrders/{id}")]
         [Authorize(Roles = "admin, customer")]
-        public IActionResult GetOrders(string id)
+        public IActionResult GetOrders(int id)
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
             if (user == null)
                 return BadRequest();
 
-            int bookingid = int.Parse(id);
-            var booking = _appdb.Bookings.FirstOrDefault(x => x.Id == bookingid && (x.UserId == user.Id || user.ProfileId == 1));
+            //int bookingid = int.Parse(id);
+            var booking = _appdb.Bookings.FirstOrDefault(x => x.Id == id && (x.UserId == user.Id || user.ProfileId == 1));
             if (booking == null)
-                return NotFound($"Booking {bookingid} not found.");
+                return NotFound($"Booking {id} not found.");
 
             var orders = _appdb.Orders.OrderByDescending(o => o.Quantity).Where(b => b.BookingId == booking.Id).Select(
                 o => new OrderDTO(o.Id, o.ItemName, o.Item.Price, o.Quantity, o.Price));
@@ -81,7 +81,7 @@ namespace RestaurantManagementApplication.Controllers
         [HttpPut("{id}")]
         [Authorize(Policy = "customer")]
         //Enter the OrderId of the order you want to edit. 
-        public IActionResult Put(int orderid, [FromBody] Order order)
+        public IActionResult Put(int id, [FromBody] Order order)
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
@@ -98,9 +98,9 @@ namespace RestaurantManagementApplication.Controllers
             if (!string.IsNullOrEmpty(order.BookingId.ToString()) || !string.IsNullOrEmpty(order.Price.ToString()))
                 return BadRequest("Posting objects with values for certain properties is not allowed.");
 
-            var orderToUpdate = _appdb.Orders.FirstOrDefault(o => o.Id == orderid);
+            var orderToUpdate = _appdb.Orders.FirstOrDefault(o => o.Id == id);
             if (orderToUpdate == null)
-                return NotFound($"No order exists with OrderId {orderid}");
+                return NotFound($"No order exists with OrderId {id}");
 
             if (orderToUpdate.BookingId == booking.Id)
                 return BadRequest("Order does not exist in your current booking.");
@@ -114,13 +114,13 @@ namespace RestaurantManagementApplication.Controllers
             orderToUpdate.Quantity = order.Quantity;
             orderToUpdate.Price = order.Quantity * item.Price;
             _appdb.SaveChanges();
-            return Ok($"Order {orderid} updated successfully!");
+            return Ok($"Order {id} updated successfully!");
         }
 
         //Enter the OrderId of the order you want to delete.
         [HttpDelete("{id}")]
         [Authorize(Policy = "customer")]
-        public IActionResult Delete(int orderid)
+        public IActionResult Delete(int id)
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var user = _appdb.Users.FirstOrDefault(u => u.EmailId == userEmail);
@@ -131,16 +131,16 @@ namespace RestaurantManagementApplication.Controllers
             if (booking == null)
                 return NotFound("You haven't made any booking.");
 
-            var orderToDelete = _appdb.Orders.FirstOrDefault(o => o.Id == orderid);
+            var orderToDelete = _appdb.Orders.FirstOrDefault(o => o.Id == id);
             if (orderToDelete == null)
-                return NotFound($"No order exists with OrderId {orderid}");
+                return NotFound($"No order exists with OrderId {id}");
 
             if (orderToDelete.BookingId == booking.Id)
                 return BadRequest("Order does not exist in your current booking.");
 
             _appdb.Orders.Remove(orderToDelete);
             _appdb.SaveChanges();
-            return Ok($"Order {orderid} deleted successfully!");
+            return Ok($"Order {id} deleted successfully!");
         }
     }
 }
